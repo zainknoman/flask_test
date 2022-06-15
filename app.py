@@ -1,15 +1,30 @@
 from flask import Flask
+from flask_bcrypt import Bcrypt
+from flask_jwt_extended import JWTManager
+from flask_mail import Mail
+
+from database.db import initialize_db
+from flask_restful import Api
+from resources.errors import errors
+
+import os
+from curses import flash
+
 
 app = Flask(__name__)
+app.config.from_envvar('ENV_FILE_LOCATION')
 
-@app.route('/')
-def index():
-    return "Hello World"
+# flash(os.environ.get('HOSTNAME', 'localhost'))
+# app.config.from_envvar(os.environ.get('HOSTNAME', 'localhost'))
 
-@app.route('/index')
-def index_main():
-    return "Hello World User"
+mail = Mail(app)
 
+# imports requiring app and mail
+from resources.routes import initialize_routes
 
-if __name__ == "__main__":
-    app.run(debug=True)
+api = Api(app, errors=errors)
+bcrypt = Bcrypt(app)
+jwt = JWTManager(app)
+
+initialize_db(app)
+initialize_routes(api)
